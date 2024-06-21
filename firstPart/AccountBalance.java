@@ -1,5 +1,6 @@
 package firstPart;
 
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 //Problema 1: Sistema Bancário
@@ -30,15 +31,16 @@ class Person extends Thread {
         try {
             semaphore.acquire();
             System.out
-                    .println("Current balance: " + problemOne.accountBalance + " - " + (isDeposit ? "Deposit" : "Draft")
+                    .println("Current balance: " + AccountBalance.accountBalance + " - "
+                            + (isDeposit ? "Deposit" : "Draft")
                             + " " + amount + " - " + Thread.currentThread().getName() + " is executing...;");
             if (isDeposit) {
-                problemOne.accountBalance += amount;
+                AccountBalance.accountBalance += amount;
             } else {
-                if (problemOne.accountBalance < amount) {
+                if (AccountBalance.accountBalance < amount) {
                     System.out.println("Draft amount exceeds the balance");
                 } else {
-                    problemOne.accountBalance -= amount;
+                    AccountBalance.accountBalance -= amount;
                 }
             }
             semaphore.release();
@@ -48,39 +50,30 @@ class Person extends Thread {
     }
 }
 
-public class problemOne {
+public class AccountBalance {
     public static int accountBalance = 1000;
 
     public static void main(String[] args) {
         Semaphore semaphore = new Semaphore(1);
 
+        Random rand = new Random();
+
+        for (int i = 0; i < rand.nextInt(20); i++) {
+            int action = rand.nextInt(2);
+            int amount = rand.nextInt(200);
+            Person thread = new Person(semaphore, amount, action == 0);
+            thread.start();
+        }
+
         Person depositThread1 = new Person(semaphore, 100, true);
         Person depositThread2 = new Person(semaphore, 200, true);
         Person draftThread1 = new Person(semaphore, 300, false);
         Person draftThread2 = new Person(semaphore, 400, false);
-        Person draftThread3 = new Person(semaphore, 700, false);
-        Person draftThread4 = new Person(semaphore, 700, false);
-        Person draftThread5 = new Person(semaphore, 700, false);
 
         depositThread1.start();
         depositThread2.start();
         draftThread1.start();
         draftThread2.start();
-        draftThread3.start();
-        draftThread4.start();
-        draftThread5.start();
-
-        try {
-            depositThread1.join();
-            depositThread2.join();
-            draftThread1.join();
-            draftThread2.join();
-            draftThread3.join();
-            draftThread4.join();
-            draftThread5.join();
-        } catch (InterruptedException e) {
-            System.err.println(e);
-        }
 
         System.out.println("Final balance: " + accountBalance);
     }

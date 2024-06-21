@@ -39,7 +39,7 @@ class Car implements Runnable {
     }
 }
 
-public class bridgeSync {
+public class BridgeSync {
     public static void main(String[] args) {
         Bridge bridge = new Bridge();
         for (int i = 1; i < 15; i++) {
