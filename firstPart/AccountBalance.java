@@ -67,13 +67,21 @@ public class AccountBalance {
 
         Person depositThread1 = new Person(semaphore, 100, true);
         Person depositThread2 = new Person(semaphore, 200, true);
-        Person draftThread1 = new Person(semaphore, 300, false);
-        Person draftThread2 = new Person(semaphore, 400, false);
+        Person draftThread1 = new Person(semaphore, 3000, false);
+        Person draftThread2 = new Person(semaphore, 4000, false);
 
         depositThread1.start();
         depositThread2.start();
         draftThread1.start();
         draftThread2.start();
+        try {
+            depositThread1.join();
+            depositThread2.join();
+            draftThread1.join();
+            draftThread2.join();
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
 
         System.out.println("Final balance: " + accountBalance);
     }

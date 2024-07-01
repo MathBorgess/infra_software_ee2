@@ -38,13 +38,13 @@ public class BridgeWOSync {
             String direction = (i % 2 == 0) ? "Esquerda" : "Direita";
             Thread car = new Thread(new CarWithoutControl(direction, i, bridge));
 
-            if (previousCar != null) {
-                try {
-                    previousCar.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            // if (previousCar != null) {
+            // try {
+            // previousCar.join();
+            // } catch (InterruptedException e) {
+            // e.printStackTrace();
+            // }
+            // }
             car.start();
             previousCar = car;
         }
