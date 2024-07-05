@@ -23,23 +23,35 @@ import java.util.concurrent.TimeUnit;
  * 
  */
 
-class Customer extends Thread {
+class BarberCustomer extends Thread {
 
     @Override
     public void run() {
         try {
-            System.out.println(getName() + " triying to acquire a chair.");
+            System.out.println(getName() + " chegou à barbearia.");
             boolean isChairAvaliable = CityBarber.chairSemaphore.tryAcquire(0, TimeUnit.SECONDS);
             if (isChairAvaliable) {
-                System.out.println(getName() + " acquire a chair to wait.");
-                CityBarber.barberSemaphore.acquire();
-                System.out.println(getName() + " cutting its hair");
-                System.out.println(getName() + " cutted its hair");
+                System.out.println(getName() + " sentou e está esperando para cortar o cabelo.");
+
+                boolean isBarberSleeping = CityBarber.barberSemaphore.tryAcquire(0, TimeUnit.SECONDS);
+                if (isBarberSleeping) {
+                    System.out.println(getName() + " acordou o barbeiro e está cortando o cabelo.");
+                } else {
+                    System.out.println(
+                            getName() + " está esperando o barbeiro terminar de cortar o cabelo de outro cliente.");
+                    CityBarber.barberSemaphore.acquire();
+                    System.out.println(getName() + " está cortando o cabelo com o barbeiro");
+                }
+                Random rand = new Random();
+                int time = 1000 * rand.nextInt(5);
+                Thread.sleep(time);
+                System.out.println(getName() + " cortou o cabelo em " + time + " ms e está saindo da barbearia.");
                 CityBarber.barberSemaphore.release();
+
                 CityBarber.chairSemaphore.release();
-                System.out.println(getName() + " releasing its chair");
+                System.out.println(getName() + " saiu.");
             } else {
-                System.out.println(getName() + " leaving the barbershop without cutting its hair");
+                System.out.println(getName() + " não conseguiu sentar e está saindo.");
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -58,16 +70,17 @@ public class CityBarber {
         CityBarber.chairs = chairs;
     }
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws InterruptedException {
         Random rand = new Random();
-        CityBarber.chairs = rand.nextInt(5) + 1;
+        CityBarber.chairs = rand.nextInt(10) + 1;
         CityBarber.chairSemaphore = new Semaphore(CityBarber.chairs);
-        System.out.println("chairs avaliable " + CityBarber.chairs);
+        System.out.println("Cadeiras disponíveis " + CityBarber.chairs);
 
-        for (int i = 0; i < rand.nextInt(10) + CityBarber.chairs + 1; i++) {
-            Customer thread = new Customer();
+        for (int i = 0; i < 100; i++) {
+            BarberCustomer thread = new BarberCustomer();
             thread.start();
+
+            Thread.sleep(200 * rand.nextInt(10));
         }
     }
 }
