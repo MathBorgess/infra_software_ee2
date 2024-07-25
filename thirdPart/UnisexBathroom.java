@@ -56,8 +56,9 @@ class BathroomPerson extends Thread {
                 + " tenta entrar no banheiro que só tem " + UnisexBathroom.currentGender.toString() + "s dentro.");
 
         try {
-            // Adquire o semáforo para controlar o acesso ao banheiro.
-            UnisexBathroom.enterBathroom.acquire();
+            // Adquire o semáforo para controlar o acesso ao banheiro, criando uma fila de
+            // espera das threads.
+            UnisexBathroom.bathroomQueue.acquire();
             // Trava o lock para garantir acesso exclusivo ao bloco de código.
             UnisexBathroom.lock.lock();
             // Espera enquanto o banheiro não está disponível para o gênero atual ou a
@@ -80,7 +81,7 @@ class BathroomPerson extends Thread {
             // Incrementa a capacidade de pessoas do mesmo gênero no banheiro.
             UnisexBathroom.sameGenderCapacity++;
             // Libera o semáforo para permitir que outras threads tentem entrar.
-            UnisexBathroom.enterBathroom.release();
+            UnisexBathroom.bathroomQueue.release();
         } catch (Exception e) {
             // TODO: handle exception
         } finally {
@@ -118,7 +119,7 @@ public class UnisexBathroom {
     // Capacidade de pessoas do mesmo gênero no banheiro.
     public static int sameGenderCapacity = 0;
     // Semáforo para controlar a entrada no banheiro.
-    public static Semaphore enterBathroom = new Semaphore(1);
+    public static Semaphore bathroomQueue = new Semaphore(1);
     // Lock para garantir exclusividade no acesso a variáveis compartilhadas.
     static final Lock lock = new ReentrantLock();
     // Condition para controlar a espera e sinalização entre threads.
