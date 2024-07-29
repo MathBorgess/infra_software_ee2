@@ -18,6 +18,9 @@ class BusPassager extends Thread {
                 if (BusProblem.BUS_STATE) {
                     // Se o ônibus está embarcando, o passageiro espera o próximo ônibus.
                     System.out.println("Passageiro " + this.getName() + " esperando o próximo ônibus.");
+                    while (BusProblem.BUS_STATE) {
+                        BusProblem.tryAgain.await();
+                    }
                     BusProblem.lock.unlock();
                 } else {
                     while (!BusProblem.BUS_STATE) {
@@ -58,6 +61,7 @@ public class BusProblem {
     public static final Lock lock = new ReentrantLock();
     // Condition para controlar a espera e sinalização entre threads.
     public static final Condition readyToQueue = lock.newCondition();
+    public static final Condition tryAgain = lock.newCondition();
     // Estado do ônibus (FALSE = não chegou, TRUE = chegou).
     public static boolean BUS_STATE = false;
 
@@ -65,7 +69,6 @@ public class BusProblem {
     public static final Semaphore seats = new Semaphore(50);
 
     public static void main(String[] args) {
-
         // Cria e inicia threads representando passageiros chegando ao ponto de ônibus.
         for (int i = 0; i < 60; i++) {
             new BusPassager().start();
@@ -75,6 +78,7 @@ public class BusProblem {
         for (int i = 0; i < 4; i++) {
             System.out.println("Ônibus");
             try {
+                Thread.sleep(100);
                 // Trava o lock para manipular o estado do ônibus e a fila de passageiros.
                 lock.lock();
 
@@ -89,7 +93,7 @@ public class BusProblem {
                     readyToQueue.signalAll();
                     lock.unlock();
                     int newPassagers = 10;
-                    Thread.sleep(BUS_ARRIVAL_TIME - newPassagers);
+                    Thread.sleep(BUS_ARRIVAL_TIME);
 
                     // Cria novas threads para simular novos passageiros chegando.
                     for (int j = 0; j < newPassagers; j++) {
@@ -101,6 +105,7 @@ public class BusProblem {
                     lock.lock();
                     BUS_STATE = false;
                     System.out.println("Ônibus partiu.");
+                    tryAgain.signalAll();
                     BusProblem.QUEUE_NUM = 0;
                     lock.unlock();
 
